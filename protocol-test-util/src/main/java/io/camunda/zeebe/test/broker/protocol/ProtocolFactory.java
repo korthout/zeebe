@@ -7,14 +7,15 @@
  */
 package io.camunda.zeebe.test.broker.protocol;
 
+import io.camunda.zeebe.protocol.record.ImmutableProtocol;
 import io.camunda.zeebe.protocol.record.ImmutableRecord;
 import io.camunda.zeebe.protocol.record.ImmutableRecord.Builder;
 import io.camunda.zeebe.protocol.record.Record;
 import io.camunda.zeebe.protocol.record.RecordValue;
 import io.camunda.zeebe.protocol.record.ValueType;
-import io.camunda.zeebe.protocol.util.ProtocolTypeMapping;
-import io.camunda.zeebe.protocol.util.ProtocolTypeMapping.Mapping;
-import io.camunda.zeebe.protocol.util.ValueTypeMapping;
+import io.camunda.zeebe.protocol.record.ValueTypeMapping;
+import io.github.classgraph.ClassGraph;
+import io.github.classgraph.ClassInfoList;
 import java.lang.reflect.Field;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
@@ -42,6 +43,8 @@ import org.jeasy.random.randomizers.registry.CustomRandomizerRegistry;
  */
 @SuppressWarnings("java:S1452")
 public final class ProtocolFactory {
+  private static final String PROTOCOL_PACKAGE_NAME = Record.class.getPackage().getName() + "*";
+
   private final CustomRandomizerRegistry randomizerRegistry;
   private final EasyRandomParameters parameters;
   private final EasyRandom random;
@@ -190,7 +193,7 @@ public final class ProtocolFactory {
   }
 
   private void registerRandomizers() {
-    ProtocolTypeMapping.forEach(this::registerProtocolTypeRandomizer);
+    findProtocolTypes().loadClasses().forEach(this::registerProtocolType);
     randomizerRegistry.registerRandomizer(Object.class, new RawObjectRandomizer());
     randomizerRegistry.registerRandomizer(
         ValueType.class,
@@ -199,9 +202,10 @@ public final class ProtocolFactory {
             ValueTypeMapping.getAcceptedValueTypes().toArray(ValueType[]::new)));
   }
 
-  private void registerProtocolTypeRandomizer(final Mapping<?> typeMapping) {
+  private void registerProtocolType(final Class<?> abstractClass) {
+    final ImmutableProtocol annotation = abstractClass.getAnnotation(ImmutableProtocol.class);
     randomizerRegistry.registerRandomizer(
-        typeMapping.getAbstractClass(), () -> random.nextObject(typeMapping.getConcreteClass()));
+        abstractClass, () -> random.nextObject(annotation.immutable()));
   }
 
   private EasyRandomParameters getDefaultParameters() {
@@ -246,6 +250,16 @@ public final class ProtocolFactory {
 
     return Objects.requireNonNull(modifier.apply(builder), "must return a non null builder")
         .build();
+  }
+
+  static ClassInfoList findProtocolTypes() {
+    return new ClassGraph()
+        .acceptPackages(PROTOCOL_PACKAGE_NAME)
+        .enableAnnotationInfo()
+        .scan()
+        .getAllInterfaces()
+        .filter(info -> info.hasAnnotation(ImmutableProtocol.class))
+        .directOnly();
   }
 
   /**
