@@ -24,7 +24,9 @@ import org.immutables.value.Value;
  * It contains details of the output and the value of the evaluated output expression.
  */
 @Value.Immutable
-@ImmutableProtocol
+@ImmutableProtocol(
+    immutable = ImmutableEvaluatedOutputValue.class,
+    builder = ImmutableEvaluatedOutputValue.Builder.class)
 public interface EvaluatedOutputValue extends RecordValue {
 
   /** @return the id of the evaluated output */

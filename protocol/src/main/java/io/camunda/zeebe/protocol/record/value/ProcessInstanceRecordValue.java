@@ -26,7 +26,9 @@ import org.immutables.value.Value;
  * <p>See {@link ProcessInstanceIntent} for intents.
  */
 @Value.Immutable
-@ImmutableProtocol
+@ImmutableProtocol(
+    immutable = ImmutableProcessInstanceRecordValue.class,
+    builder = ImmutableProcessInstanceRecordValue.Builder.class)
 public interface ProcessInstanceRecordValue extends RecordValue, ProcessInstanceRelated {
   /** @return the BPMN process id this process instance belongs to. */
   String getBpmnProcessId();

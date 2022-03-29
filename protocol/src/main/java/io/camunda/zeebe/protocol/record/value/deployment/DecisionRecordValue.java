@@ -25,7 +25,9 @@ import org.immutables.value.Value;
  * {@link DecisionRequirementsRecordValue}).
  */
 @Value.Immutable
-@ImmutableProtocol
+@ImmutableProtocol(
+    immutable = ImmutableDecisionRecordValue.class,
+    builder = ImmutableDecisionRecordValue.Builder.class)
 public interface DecisionRecordValue extends RecordValue {
 
   /** @return the ID of the decision in the DMN */

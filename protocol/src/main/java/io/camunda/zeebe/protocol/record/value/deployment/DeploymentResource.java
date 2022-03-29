@@ -20,7 +20,9 @@ import org.immutables.value.Value;
 
 /** Represents a single deployment resource. */
 @Value.Immutable
-@ImmutableProtocol
+@ImmutableProtocol(
+    immutable = ImmutableDeploymentResource.class,
+    builder = ImmutableDeploymentResource.Builder.class)
 public interface DeploymentResource {
 
   /** @return the resource contents */

@@ -20,7 +20,9 @@ import io.camunda.zeebe.protocol.record.RecordValueWithVariables;
 import org.immutables.value.Value;
 
 @Value.Immutable
-@ImmutableProtocol
+@ImmutableProtocol(
+    immutable = ImmutableVariableDocumentRecordValue.class,
+    builder = ImmutableVariableDocumentRecordValue.Builder.class)
 public interface VariableDocumentRecordValue extends RecordValueWithVariables {
 
   /** @return the scope key associated with the variable document */

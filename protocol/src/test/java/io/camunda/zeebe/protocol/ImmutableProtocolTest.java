@@ -21,8 +21,12 @@ import com.tngtech.archunit.core.domain.JavaClass.Predicates;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
+import com.tngtech.archunit.lang.syntax.elements.GivenClassesConjunction;
 import io.camunda.zeebe.protocol.record.ImmutableProtocol;
 import io.camunda.zeebe.protocol.record.Record;
 import io.camunda.zeebe.protocol.record.value.ProcessInstanceRelated;
@@ -43,29 +47,78 @@ import org.immutables.value.Value;
 @AnalyzeClasses(packages = "io.camunda.zeebe.protocol.record..")
 final class ImmutableProtocolTest {
   @ArchTest
-  void shouldAnnotateImmutableProtocolValues(final JavaClasses importedClasses) {
+  void shouldAnnotateImmutableProtocol(final JavaClasses importedClasses) {
     // given
-    // exclude certain interfaces for which we won't be generating any immutable variants
-    final DescribedPredicate<JavaClass> excludedClasses =
-        Predicates.equivalentTo(ProcessInstanceRelated.class);
+    final DescribedPredicate<JavaClass> excludedClasses = getExcludedClasses();
     final ArchRule rule =
-        ArchRuleDefinition.classes()
-            .that()
-            // lookup only interface types, ignore enums or concrete classes
-            .areInterfaces()
-            .and()
-            // check only all the types under the record.value and subpackages
-            .resideInAnyPackage("io.camunda.zeebe.protocol.record.value..")
-            // also check the Record interface itself
-            .or(Predicates.equivalentTo(Record.class))
-            // exclude certain interfaces
-            .and(DescribedPredicate.not(excludedClasses))
-            .should()
-            .beAnnotatedWith(ImmutableProtocol.class)
-            .andShould()
-            .beAnnotatedWith(Value.Immutable.class);
+        getBaseRule(excludedClasses).should().beAnnotatedWith(Value.Immutable.class);
 
     // then
     rule.check(importedClasses);
+  }
+
+  @ArchTest
+  void shouldAnnotateImmutableProtocolValues(final JavaClasses importedClasses) {
+    // given
+    final DescribedPredicate<JavaClass> excludedClasses = getExcludedClasses();
+    final ArchRule rule = getBaseRule(excludedClasses).should(beAnnotatedWithImmutableProtocol());
+
+    // then
+    rule.check(importedClasses);
+  }
+
+  private GivenClassesConjunction getBaseRule(final DescribedPredicate<JavaClass> excludedClasses) {
+    return ArchRuleDefinition.classes()
+        .that()
+        // lookup only interface types, ignore enums or concrete classes
+        .areInterfaces()
+        .and()
+        // check only all the types under the record.value and subpackages
+        .resideInAnyPackage("io.camunda.zeebe.protocol.record.value..")
+        // also check the Record interface itself
+        .or(Predicates.equivalentTo(Record.class))
+        // exclude certain interfaces
+        .and(DescribedPredicate.not(excludedClasses));
+  }
+
+  // exclude certain interfaces for which we won't be generating any immutable variants
+  private DescribedPredicate<JavaClass> getExcludedClasses() {
+    return Predicates.equivalentTo(ProcessInstanceRelated.class);
+  }
+
+  private ArchCondition<JavaClass> beAnnotatedWithImmutableProtocol() {
+    return new ArchCondition<JavaClass>("ensure ImmutableProtocol types are properly configured") {
+      @Override
+      public void check(final JavaClass item, final ConditionEvents events) {
+        final ImmutableProtocol annotation = item.getAnnotationOfType(ImmutableProtocol.class);
+
+        events.add(
+            new SimpleConditionEvent(
+                item,
+                item.isAnnotatedWith(ImmutableProtocol.class),
+                String.format("%s is not annotated with @ImmutableProtocol", item)));
+        events.add(
+            new SimpleConditionEvent(
+                item,
+                item.isAssignableFrom(annotation.immutable()),
+                String.format(
+                    "%s @ImmutableProtocol.immutable()=[%s] is not an implementation of %s",
+                    item, annotation.immutable(), item)));
+        events.add(
+            new SimpleConditionEvent(
+                item,
+                annotation.immutable().isAnnotationPresent(ImmutableProtocol.Type.class),
+                String.format(
+                    "%s @ImmutableProtocol.immutable()=[%s] is not an immutable protocol type",
+                    item, annotation.immutable())));
+        events.add(
+            new SimpleConditionEvent(
+                item,
+                annotation.builder().getDeclaringClass().equals(annotation.immutable()),
+                String.format(
+                    "%s @ImmutableProtocol.builder()=[%s] is not the inner builder of @ImmutableProtocol.immutable()=[%s]",
+                    item, annotation.builder(), annotation.immutable())));
+      }
+    };
   }
 }

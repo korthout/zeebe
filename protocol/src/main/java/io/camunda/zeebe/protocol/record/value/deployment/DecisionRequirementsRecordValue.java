@@ -24,7 +24,9 @@ import org.immutables.value.Value;
  * the DMN resource belongs to this DRG. The DMN resource itself is stored only in the DRG.
  */
 @Value.Immutable
-@ImmutableProtocol
+@ImmutableProtocol(
+    immutable = ImmutableDecisionRequirementsRecordValue.class,
+    builder = ImmutableDecisionRequirementsRecordValue.Builder.class)
 public interface DecisionRequirementsRecordValue
     extends RecordValue, DecisionRequirementsMetadataValue {
 

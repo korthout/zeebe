@@ -37,7 +37,9 @@ import org.immutables.value.Value;
  * associated with the emitter (e.g. timer, message).
  */
 @Value.Immutable
-@ImmutableProtocol
+@ImmutableProtocol(
+    immutable = ImmutableProcessEventRecordValue.class,
+    builder = ImmutableProcessEventRecordValue.Builder.class)
 public interface ProcessEventRecordValue extends RecordValueWithVariables, ProcessInstanceRelated {
 
   /** @return the key identifying the event's scope */

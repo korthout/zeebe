@@ -26,7 +26,9 @@ import org.immutables.value.Value;
  * <p>See {@link ProcessMessageSubscriptionIntent} for intents.
  */
 @Value.Immutable
-@ImmutableProtocol
+@ImmutableProtocol(
+    immutable = ImmutableProcessMessageSubscriptionRecordValue.class,
+    builder = ImmutableProcessMessageSubscriptionRecordValue.Builder.class)
 public interface ProcessMessageSubscriptionRecordValue
     extends RecordValueWithVariables, ProcessInstanceRelated {
   /** @return the process instance key */

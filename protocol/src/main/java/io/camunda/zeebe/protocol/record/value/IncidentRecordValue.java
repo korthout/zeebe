@@ -26,7 +26,9 @@ import org.immutables.value.Value;
  * <p>See {@link IncidentIntent} for intents.
  */
 @Value.Immutable
-@ImmutableProtocol
+@ImmutableProtocol(
+    immutable = ImmutableIncidentRecordValue.class,
+    builder = ImmutableIncidentRecordValue.Builder.class)
 public interface IncidentRecordValue extends RecordValue, ProcessInstanceRelated {
   /**
    * @return the type of error this incident is caused by. Can be <code>UNKNOWN</code> if the

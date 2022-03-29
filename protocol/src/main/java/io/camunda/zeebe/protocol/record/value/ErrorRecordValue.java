@@ -21,7 +21,9 @@ import org.immutables.value.Value;
 
 /** Error records are written on unexpected errors during the processing phase. */
 @Value.Immutable
-@ImmutableProtocol
+@ImmutableProtocol(
+    immutable = ImmutableErrorRecordValue.class,
+    builder = ImmutableErrorRecordValue.Builder.class)
 public interface ErrorRecordValue extends RecordValue {
 
   /** @return the exception message, which causes this error record. */

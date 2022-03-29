@@ -27,7 +27,9 @@ import org.immutables.value.Value;
  * <p>See {@link JobIntent} for intents.
  */
 @Value.Immutable
-@ImmutableProtocol
+@ImmutableProtocol(
+    immutable = ImmutableJobRecordValue.class,
+    builder = ImmutableJobRecordValue.Builder.class)
 public interface JobRecordValue extends RecordValueWithVariables, ProcessInstanceRelated {
 
   /** @return the type of the job */

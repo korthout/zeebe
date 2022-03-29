@@ -20,7 +20,9 @@ import io.camunda.zeebe.protocol.record.RecordValue;
 import org.immutables.value.Value;
 
 @Value.Immutable
-@ImmutableProtocol
+@ImmutableProtocol(
+    immutable = ImmutableDeploymentDistributionRecordValue.class,
+    builder = ImmutableDeploymentDistributionRecordValue.Builder.class)
 public interface DeploymentDistributionRecordValue extends RecordValue {
 
   /** @return the partition where the deployment should be distributed */
